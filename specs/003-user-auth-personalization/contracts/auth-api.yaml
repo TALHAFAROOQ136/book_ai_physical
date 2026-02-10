@@ -1,0 +1,665 @@
+openapi: 3.1.0
+info:
+  title: User Authentication & Personalization API
+  version: 1.0.0
+  description: |
+    API for the Physical AI Textbook user authentication, background assessment,
+    progress tracking, and content personalization features.
+
+    Better-Auth handles `/api/auth/*` routes automatically.
+    Custom routes handle assessment, progress, and learning path.
+
+servers:
+  - url: /api
+    description: API base path (same-origin or subdomain)
+
+tags:
+  - name: auth
+    description: Authentication (managed by Better-Auth)
+  - name: assessment
+    description: Background assessment management
+  - name: progress
+    description: Chapter progress tracking
+  - name: learning-path
+    description: Personalized learning path
+  - name: profile
+    description: User profile management
+
+paths:
+  # ─── AUTHENTICATION (Better-Auth managed) ───────────────────────────
+  /auth/sign-up/email:
+    post:
+      tags: [auth]
+      summary: Register a new user with email and password
+      description: Creates a new user account. Better-Auth handles validation, hashing, and session creation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, displayName]
+              properties:
+                name:
+                  type: string
+                  description: Full name
+                  example: "Jane Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "jane@example.com"
+                password:
+                  type: string
+                  minLength: 8
+                  description: "Min 8 chars, at least 1 letter and 1 number"
+                  example: "securePass1"
+                displayName:
+                  type: string
+                  description: Display name for the UI
+                  example: "Jane"
+      responses:
+        "200":
+          description: User created and signed in
+          headers:
+            Set-Cookie:
+              description: Session cookie (HTTP-only, Secure, SameSite)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "422":
+          description: Validation error (email taken, weak password)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/sign-in/email:
+    post:
+      tags: [auth]
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                rememberMe:
+                  type: boolean
+                  default: false
+                callbackURL:
+                  type: string
+                  description: URL to redirect after sign-in
+      responses:
+        "200":
+          description: Signed in successfully
+          headers:
+            Set-Cookie:
+              description: Session cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/sign-out:
+    post:
+      tags: [auth]
+      summary: Sign out and terminate session
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Session terminated
+
+  /auth/forget-password:
+    post:
+      tags: [auth]
+      summary: Request password reset email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                redirectTo:
+                  type: string
+                  description: URL for the reset page
+      responses:
+        "200":
+          description: Reset email sent (always returns 200 to prevent email enumeration)
+
+  /auth/reset-password:
+    post:
+      tags: [auth]
+      summary: Reset password with token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newPassword, token]
+              properties:
+                newPassword:
+                  type: string
+                  minLength: 8
+                token:
+                  type: string
+      responses:
+        "200":
+          description: Password reset successful
+        "400":
+          description: Invalid or expired token
+
+  /auth/get-session:
+    get:
+      tags: [auth]
+      summary: Get current session and user data
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Active session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        "401":
+          description: No active session
+
+  /auth/delete-user:
+    post:
+      tags: [auth]
+      summary: Delete user account (soft-delete)
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  description: Current password for confirmation
+      responses:
+        "200":
+          description: Account marked for deletion
+
+  # ─── BACKGROUND ASSESSMENT ──────────────────────────────────────────
+  /assessment:
+    get:
+      tags: [assessment]
+      summary: Get current user's background assessment
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Assessment data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assessment"
+        "404":
+          description: No assessment completed yet
+
+    post:
+      tags: [assessment]
+      summary: Create or update background assessment
+      description: |
+        Creates a new assessment or updates the existing one.
+        Triggers learning path regeneration.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssessmentInput"
+      responses:
+        "200":
+          description: Assessment saved and level computed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assessment:
+                    $ref: "#/components/schemas/Assessment"
+                  recommendation:
+                    $ref: "#/components/schemas/StartingRecommendation"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── CHAPTER PROGRESS ───────────────────────────────────────────────
+  /progress:
+    get:
+      tags: [progress]
+      summary: Get all chapter progress for current user
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: All progress records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapters:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChapterProgress"
+                  summary:
+                    $ref: "#/components/schemas/ProgressSummary"
+
+  /progress/{chapterId}:
+    get:
+      tags: [progress]
+      summary: Get progress for a specific chapter
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "intro-to-ros2"
+      responses:
+        "200":
+          description: Chapter progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChapterProgress"
+        "404":
+          description: No progress record (chapter not started)
+
+    patch:
+      tags: [progress]
+      summary: Update chapter progress status
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [in_progress, completed]
+      responses:
+        "200":
+          description: Progress updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChapterProgress"
+
+  /progress/continue:
+    get:
+      tags: [progress]
+      summary: Get "continue where you left off" data
+      description: Returns the most recently accessed in-progress chapter.
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Last active chapter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapterId:
+                    type: string
+                  chapterTitle:
+                    type: string
+                  lastAccessedAt:
+                    type: string
+                    format: date-time
+        "404":
+          description: No chapters started yet
+
+  # ─── LEARNING PATH ──────────────────────────────────────────────────
+  /learning-path:
+    get:
+      tags: [learning-path]
+      summary: Get personalized learning path
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Recommended learning path
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningPath"
+        "404":
+          description: No assessment completed (path requires assessment data)
+
+    post:
+      tags: [learning-path]
+      summary: Regenerate learning path
+      description: Force regeneration of learning path from current assessment data.
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Path regenerated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningPath"
+
+  # ─── USER PROFILE ───────────────────────────────────────────────────
+  /profile:
+    get:
+      tags: [profile]
+      summary: Get current user's full profile
+      description: Returns user info, assessment, progress summary, and learning path.
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Full user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+    patch:
+      tags: [profile]
+      summary: Update user profile
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: better-auth.session_token
+      description: HTTP-only session cookie managed by Better-Auth
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+            displayName:
+              type: string
+        session:
+          type: object
+          properties:
+            id:
+              type: string
+            token:
+              type: string
+            expiresAt:
+              type: string
+              format: date-time
+
+    SessionResponse:
+      type: object
+      properties:
+        session:
+          type: object
+          properties:
+            id:
+              type: string
+            userId:
+              type: string
+            expiresAt:
+              type: string
+              format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+            displayName:
+              type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+
+    AssessmentInput:
+      type: object
+      required:
+        - devExperience
+        - pythonProficiency
+        - roboticsBackground
+        - rosExposure
+        - learningGoals
+      properties:
+        devExperience:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        pythonProficiency:
+          type: string
+          enum: [none, basic, proficient, expert]
+        roboticsBackground:
+          type: string
+          enum: [none, hobbyist, professional]
+        rosExposure:
+          type: string
+          enum: [none, ros1, ros2]
+        learningGoals:
+          type: array
+          items:
+            type: string
+            enum: [simulation, perception, navigation, voice_control, full_stack_robotics]
+          minItems: 1
+
+    Assessment:
+      allOf:
+        - $ref: "#/components/schemas/AssessmentInput"
+        - type: object
+          properties:
+            id:
+              type: string
+            userId:
+              type: string
+            computedLevel:
+              type: string
+              enum: [beginner, intermediate, advanced]
+            completedAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+
+    StartingRecommendation:
+      type: object
+      properties:
+        startingChapter:
+          type: string
+          description: Recommended first chapter slug
+        reason:
+          type: string
+          description: Human-readable reason for the recommendation
+
+    ChapterProgress:
+      type: object
+      properties:
+        id:
+          type: string
+        chapterId:
+          type: string
+        status:
+          type: string
+          enum: [not_started, in_progress, completed]
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastAccessedAt:
+          type: string
+          format: date-time
+
+    ProgressSummary:
+      type: object
+      properties:
+        totalChapters:
+          type: integer
+        completedCount:
+          type: integer
+        inProgressCount:
+          type: integer
+        overallPercentage:
+          type: number
+          format: float
+        moduleProgress:
+          type: array
+          items:
+            type: object
+            properties:
+              moduleId:
+                type: integer
+              moduleName:
+                type: string
+              totalChapters:
+                type: integer
+              completedChapters:
+                type: integer
+              percentage:
+                type: number
+                format: float
+
+    LearningPath:
+      type: object
+      properties:
+        id:
+          type: string
+        recommendedChapters:
+          type: array
+          items:
+            type: object
+            properties:
+              chapterId:
+                type: string
+              chapterTitle:
+                type: string
+              moduleId:
+                type: integer
+              priority:
+                type: string
+                enum: [required, recommended, optional]
+              status:
+                type: string
+                enum: [not_started, in_progress, completed]
+        priorityModules:
+          type: array
+          items:
+            type: integer
+        startingChapter:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+
+    UserProfile:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+            displayName:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+        assessment:
+          $ref: "#/components/schemas/Assessment"
+          nullable: true
+        progressSummary:
+          $ref: "#/components/schemas/ProgressSummary"
+        learningPath:
+          $ref: "#/components/schemas/LearningPath"
+          nullable: true
