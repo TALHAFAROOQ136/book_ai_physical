@@ -29,13 +29,25 @@
   50% { transform: translateY(-6px); }
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.05); }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(10px, -15px) rotate(5deg); }
+  50% { transform: translate(-5px, -25px) rotate(-3deg); }
+  75% { transform: translate(15px, -10px) rotate(2deg); }
+}
+
 /* ============================================================
    HERO BANNER
    ============================================================ */
 
 .hero {
   position: relative;
-  padding: 6rem 2rem 5rem;
+  padding: 7rem 2rem 6rem;
   text-align: center;
   background: linear-gradient(135deg, var(--hero-bg-start) 0%, var(--hero-bg-mid) 50%, var(--hero-bg-end) 100%);
   background-size: 200% 200%;
@@ -67,6 +79,7 @@
 
 .heroTitle {
   position: relative;
+  z-index: 1;
   font-size: 3.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -82,6 +95,7 @@
 
 .heroSubtitle {
   position: relative;
+  z-index: 1;
   font-size: 1.3rem;
   max-width: 680px;
   margin: 0 auto 2.5rem;
@@ -94,6 +108,7 @@
 
 .heroButtons {
   position: relative;
+  z-index: 1;
   display: flex;
   gap: 1rem;
   justify-content: center;
@@ -101,6 +116,111 @@
   opacity: 0;
   animation: fadeInUp 0.8s ease-out 0.4s both;
 }
+
+/* ============================================================
+   HERO GEOMETRIC DECORATIONS
+   ============================================================ */
+
+.heroDecorations {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.geoShape { position: absolute; }
+
+.geoHexagon {
+  width: 120px;
+  height: 120px;
+  top: 10%;
+  left: 5%;
+  border: 1px solid rgba(37, 194, 160, 0.12);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation: drift 20s ease-in-out infinite, pulse 4s ease-in-out infinite;
+}
+
+.geoCircle {
+  width: 80px;
+  height: 80px;
+  top: 20%;
+  right: 8%;
+  border: 1.5px solid rgba(108, 99, 255, 0.15);
+  border-radius: 50%;
+  animation: drift 15s ease-in-out infinite reverse, pulse 5s ease-in-out infinite;
+}
+
+.geoRing {
+  width: 200px;
+  height: 200px;
+  bottom: -40px;
+  right: 15%;
+  border: 1px solid rgba(37, 194, 160, 0.08);
+  border-radius: 50%;
+  animation: pulse 6s ease-in-out infinite;
+}
+
+.geoDot1 {
+  width: 6px;
+  height: 6px;
+  top: 30%;
+  left: 20%;
+  background: rgba(37, 194, 160, 0.3);
+  border-radius: 50%;
+  animation: float 4s ease-in-out infinite;
+}
+
+.geoDot2 {
+  width: 4px;
+  height: 4px;
+  top: 60%;
+  right: 25%;
+  background: rgba(108, 99, 255, 0.3);
+  border-radius: 50%;
+  animation: float 3s ease-in-out infinite 1s;
+}
+
+.geoDot3 {
+  width: 5px;
+  height: 5px;
+  bottom: 25%;
+  left: 35%;
+  background: rgba(255, 167, 38, 0.25);
+  border-radius: 50%;
+  animation: float 5s ease-in-out infinite 0.5s;
+}
+
+.geoLine1 {
+  width: 120px;
+  height: 1px;
+  bottom: 30%;
+  left: 8%;
+  background: linear-gradient(90deg, transparent, rgba(37, 194, 160, 0.15), transparent);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.geoLine2 {
+  width: 80px;
+  height: 1px;
+  top: 40%;
+  right: 12%;
+  background: linear-gradient(90deg, transparent, rgba(108, 99, 255, 0.12), transparent);
+  animation: pulse 5s ease-in-out infinite 2s;
+}
+
+.geoCircuitSvg {
+  position: absolute;
+  bottom: 10%;
+  right: 3%;
+  width: 200px;
+  height: 200px;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
 
 .btnPrimary {
   display: inline-flex;
@@ -157,6 +277,59 @@
 }
 
 /* ============================================================
+   STATS BAR
+   ============================================================ */
+
+.statsBar {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: -2.5rem auto 0;
+  padding: 1.75rem 2rem;
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 30px var(--card-shadow);
+}
+
+.statsInner {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 80px;
+}
+
+.statItem + .statItem {
+  border-left: 1px solid var(--card-border);
+  padding-left: 1.5rem;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.statLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.55;
+  text-align: center;
+}
+
+/* ============================================================
    SECTIONS - COMMON
    ============================================================ */
 
@@ -168,10 +341,18 @@
 
 .sectionTitle {
   text-align: center;
-  font-size: 2.2rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   margin-bottom: 0.75rem;
   letter-spacing: -0.01em;
+}
+
+.sectionDivider {
+  width: 60px;
+  height: 3px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(90deg, var(--accent), var(--module-2-color));
+  border-radius: 2px;
 }
 
 .sectionSubtitle {
@@ -182,6 +363,7 @@
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  line-height: 1.7;
 }
 
 .animateHidden {
@@ -194,6 +376,19 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animateHidden {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.stagger1 { transition-delay: 0.1s; }
+.stagger2 { transition-delay: 0.2s; }
+.stagger3 { transition-delay: 0.3s; }
+.stagger4 { transition-delay: 0.4s; }
 
 /* ============================================================
    MODULE CARDS (FEATURES)
@@ -244,12 +439,45 @@
   height: 4px;
 }
 
+.cardPattern {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle at top right, rgba(37, 194, 160, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.card:nth-child(2) .cardPattern { background: radial-gradient(circle at top right, rgba(108, 99, 255, 0.06) 0%, transparent 70%); }
+.card:nth-child(3) .cardPattern { background: radial-gradient(circle at top right, rgba(255, 107, 107, 0.06) 0%, transparent 70%); }
+.card:nth-child(4) .cardPattern { background: radial-gradient(circle at top right, rgba(255, 167, 38, 0.06) 0%, transparent 70%); }
+
 .cardHeader {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
   margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
 }
+
+.cardIconContainer {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.3s ease;
+}
+
+.card:nth-child(1) .cardIconContainer { background: rgba(37, 194, 160, 0.1); }
+.card:nth-child(2) .cardIconContainer { background: rgba(108, 99, 255, 0.1); }
+.card:nth-child(3) .cardIconContainer { background: rgba(255, 107, 107, 0.1); }
+.card:nth-child(4) .cardIconContainer { background: rgba(255, 167, 38, 0.1); }
 
 .cardNumber {
   display: inline-flex;
@@ -266,7 +494,7 @@
 }
 
 .cardIcon {
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   display: block;
   animation: float 3s ease-in-out infinite;
 }
@@ -280,6 +508,8 @@
   font-weight: 700;
   margin-bottom: 0.5rem;
   letter-spacing: -0.01em;
+  position: relative;
+  z-index: 1;
 }
 
 .cardDescription {
@@ -287,12 +517,53 @@
   opacity: 0.75;
   line-height: 1.65;
   margin: 0;
-  flex-grow: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.cardTags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+.cardTag {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+
+.card:nth-child(1) .cardTag { background: rgba(37, 194, 160, 0.08); border: 1px solid rgba(37, 194, 160, 0.15); color: #25c2a0; }
+.card:nth-child(2) .cardTag { background: rgba(108, 99, 255, 0.08); border: 1px solid rgba(108, 99, 255, 0.15); color: #6c63ff; }
+.card:nth-child(3) .cardTag { background: rgba(255, 107, 107, 0.08); border: 1px solid rgba(255, 107, 107, 0.15); color: #ff6b6b; }
+.card:nth-child(4) .cardTag { background: rgba(255, 167, 38, 0.08); border: 1px solid rgba(255, 167, 38, 0.15); color: #ffa726; }
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--card-border);
+  position: relative;
+  z-index: 1;
+}
+
+.cardChapterCount {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.5;
 }
 
 .cardArrow {
-  margin-top: 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--card-accent, var(--accent));
   opacity: 0;
@@ -305,10 +576,159 @@
   transform: translateX(0);
 }
 
-.stagger1 { transition-delay: 0.1s; }
-.stagger2 { transition-delay: 0.2s; }
-.stagger3 { transition-delay: 0.3s; }
-.stagger4 { transition-delay: 0.4s; }
+/* ============================================================
+   ROADMAP / TIMELINE
+   ============================================================ */
+
+.roadmapSection {
+  padding: 5rem 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.roadmap {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-top: 2rem;
+}
+
+.roadmapLine {
+  position: absolute;
+  top: calc(2rem + 22px);
+  left: 60px;
+  right: 60px;
+  height: 2px;
+  background: linear-gradient(90deg,
+    var(--module-1-color),
+    var(--module-2-color),
+    var(--module-3-color),
+    var(--module-4-color)
+  );
+  z-index: 0;
+  border-radius: 1px;
+}
+
+.roadmapNode {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.roadmapDot {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 3px solid var(--node-color, var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.roadmapNode:nth-child(2) .roadmapDot { box-shadow: 0 0 0 4px rgba(37, 194, 160, 0.1); }
+.roadmapNode:nth-child(3) .roadmapDot { box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.1); }
+.roadmapNode:nth-child(4) .roadmapDot { box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1); }
+.roadmapNode:nth-child(5) .roadmapDot { box-shadow: 0 0 0 4px rgba(255, 167, 38, 0.1); }
+
+.roadmapDot:hover {
+  transform: scale(1.15);
+}
+
+.roadmapDotInner {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--node-color, var(--accent));
+}
+
+.roadmapContent {
+  max-width: 200px;
+}
+
+.roadmapTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.roadmapDesc {
+  font-size: 0.78rem;
+  opacity: 0.55;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 180px;
+}
+
+/* ============================================================
+   TECH STACK
+   ============================================================ */
+
+.techSection {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--why-bg);
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.techGrid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  max-width: 700px;
+  margin: 2rem auto 0;
+}
+
+.techItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  transition: transform 0.3s ease;
+}
+
+.techItem:hover {
+  transform: translateY(-4px);
+}
+
+.techLogo {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  background: var(--tech-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.techItem:hover .techLogo {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.techAbbrev {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--tech-text);
+  letter-spacing: -0.02em;
+}
+
+.techName {
+  font-size: 0.78rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
 
 /* ============================================================
    WHY SECTION
@@ -354,6 +774,18 @@
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.whyCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--why-accent, var(--accent));
 }
 
 .whyCard:hover {
@@ -361,10 +793,24 @@
   box-shadow: 0 8px 30px var(--card-shadow-hover);
 }
 
-.whyIcon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
-  display: block;
+.whyIconContainer {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.whyCard:nth-child(1) .whyIconContainer { background: rgba(37, 194, 160, 0.1); }
+.whyCard:nth-child(2) .whyIconContainer { background: rgba(108, 99, 255, 0.1); }
+.whyCard:nth-child(3) .whyIconContainer { background: rgba(255, 107, 107, 0.1); }
+
+.whyIconSymbol {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--why-accent, var(--accent));
 }
 
 .whyCardTitle {
@@ -420,6 +866,23 @@
 }
 
 /* ============================================================
+   DARK MODE OVERRIDES
+   ============================================================ */
+
+:global([data-theme='dark']) .statsBar {
+  background: #1e1e2e;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .techLogo {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='dark']) .roadmapDot {
+  background: #1e1e2e;
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 
@@ -447,6 +910,76 @@
   .whySection {
     padding: 3rem 1.25rem;
   }
+
+  .statsBar {
+    margin: -2rem 1rem 0;
+    padding: 1.5rem 1rem;
+  }
+
+  .statsInner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .statItem + .statItem {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  /* Roadmap: vertical on mobile */
+  .roadmapSection {
+    padding: 3rem 1.25rem;
+  }
+
+  .roadmap {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+    padding-left: 2.5rem;
+  }
+
+  .roadmapLine {
+    top: 2rem;
+    bottom: 0;
+    left: calc(2.5rem + 20px);
+    right: auto;
+    width: 2px;
+    height: auto;
+    background: linear-gradient(180deg,
+      var(--module-1-color),
+      var(--module-2-color),
+      var(--module-3-color),
+      var(--module-4-color)
+    );
+  }
+
+  .roadmapNode {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1rem;
+  }
+
+  .roadmapDot {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .roadmapContent {
+    max-width: none;
+  }
+
+  .roadmapDesc {
+    max-width: none;
+  }
+
+  /* Simplify hero decorations on tablet */
+  .geoHexagon,
+  .geoRing,
+  .geoCircuitSvg {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -461,5 +994,28 @@
   .heroButtons {
     flex-direction: column;
     align-items: center;
+  }
+
+  .statsBar {
+    margin: -1.5rem 0.75rem 0;
+    border-radius: 12px;
+  }
+
+  .heroDecorations {
+    display: none;
+  }
+
+  .techGrid {
+    gap: 1.5rem;
+  }
+
+  .techLogo {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+  }
+
+  .techAbbrev {
+    font-size: 0.9rem;
   }
 }
