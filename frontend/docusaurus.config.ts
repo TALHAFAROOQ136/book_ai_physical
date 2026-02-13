@@ -53,7 +53,32 @@ const config: Config = {
     },
     footer: {
       style: "dark",
-      copyright: `Copyright © ${new Date().getFullYear()} Physical AI & Humanoid Robotics Textbook.`,
+      links: [
+        {
+          title: "Content",
+          items: [
+            { label: "Introduction", to: "/chapters/" },
+            { label: "Module 1: ROS 2", to: "/chapters/module1/intro-to-ros2" },
+            { label: "Module 2: Simulation", to: "/chapters/module2/intro-to-simulation" },
+            { label: "Module 3: Isaac", to: "/chapters/module3/intro-to-isaac" },
+            { label: "Module 4: VLA", to: "/chapters/module4/intro-to-vla" },
+          ],
+        },
+        {
+          title: "Resources",
+          items: [
+            { label: "Dashboard", to: "/dashboard" },
+            { label: "Assessment", to: "/assessment" },
+          ],
+        },
+        {
+          title: "Community",
+          items: [
+            { label: "GitHub", href: "https://github.com/TALHAFAROOQ136" },
+          ],
+        },
+      ],
+      copyright: `Copyright \u00A9 ${new Date().getFullYear()} Physical AI & Humanoid Robotics Textbook. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
